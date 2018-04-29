@@ -1,0 +1,69 @@
+<!DOCTYPE HTML >
+<html lang="en">
+<head>
+	<title>App</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+
+<body>
+<div id="login_screen">
+		Username:
+		<input type="text" id="login_username" placeholder = "username" ><br>
+		Password: 
+  		<input type="password" id="login_password" placeholder="password" ><br>
+  		<button id="login_button" type="button">Login </button>
+	<button id="go_to_register" type="button">Register </button>
+</div>
+
+<div id="register_screen">
+		Username: 
+		<input type="text" id="login_username_register" placeholder = "username" ><br>
+		Password: 
+  		<input type="password" id="login_password_register" placeholder="password" ><br>
+  		ReEnter Password: 
+  		<input type="password" id="login_repassword_register" placeholder="reenter password" ><br>
+  		<button id="register_button" type="submit"> Register </button> <br>
+  	<button id="cancel_register" type="button">Cancel </button>
+</div>
+
+<div id="home_screen">
+	<button id="panic_button" type="button">Panic </button><br>
+	<button id="medical_button" type="button">Medical </button><br>
+	<p id="current_speed">Speed: </p><br>
+	<p id="speed_travled">Speed Travled: </p><br>
+	<p id="run_timer">Run Timer: </p><br>
+	<button id="toggle_safety" type="button"> Enable Safety </button><br>
+	<button id="toggle_run" type="button"> Start Run </button>
+	<button id="logout_button" type="button"> Logout </button>
+</div>
+
+<div id="police_screen">
+	<h3> Are you sure you want to call the police </h3><br>
+	<button id="call_police" type="button"> Yes! </button>
+	<button id="cancel_police_call" type="button"> No! </button>
+</div>
+
+<div id="medical_screen">
+	<h3> Are you sure you want to call the medical services? </h3>
+	<button id="call_medical" type="button"> Yes! </button>
+	<button id="cancel_medical_call" type="button"> No! </button>
+</div>
+
+
+<div id="services_contacted_screen">
+	<p> Emergency services have been contacted!</p>
+	<button id="return_to_home"> Return to Home </button>
+</div>
+
+<div id="warning_timer">
+	<h3 id="warning_timer_value"> Warning Timer: </h3>
+	<button id="cancel_timer"> Cancel Call! </button>
+</div>
+
+</body>
+<script src="app.js"></script>
+</html>
+
+
