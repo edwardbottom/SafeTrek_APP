@@ -1,0 +1,125 @@
+<!DOCTYPE HTML >
+<html lang="en">
+<head>
+	<title>App</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+</head>
+
+
+<body>
+<div id="login_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+		Username:
+		<input type="text" id="login_username" placeholder = "username" ><br><br>
+		Password: 
+  		<input type="password" id="login_password" placeholder="password" ><br><br>
+  		<button id="login_button" type="button">Login </button><br>
+	<button id="go_to_register" type="button">Register </button>
+	<br>
+	<br>
+	<br>
+</div>
+</div>
+
+<div id="register_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+		Username: 
+		<input type="text" id="login_username_register" placeholder = "username" ><br>
+		Password: 
+  		<input type="password" id="login_password_register" placeholder="password" ><br>
+  		ReEnter Password: 
+  		<input type="password" id="login_repassword_register" placeholder="reenter password" ><br>
+  		<button id="register_button" type="submit"> Register </button> <br>
+  	<button id="cancel_register" type="button">Cancel </button>
+  </div>
+</div>
+
+<div id="home_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+	<button id="panic_button" type="button">Panic </button><br>
+	<button id="medical_button" type="button">Medical </button><br>
+	<p id="current_speed">Speed: </p><br>
+	<p id="speed_travled">Speed Travled: </p><br>
+	<p id="run_timer">Run Timer: </p><br>
+	<button id="toggle_safety" type="button"> Enable Safety </button><br>
+	<button id="toggle_run" type="button"> Start Run </button><br>
+	<button id="logout_button" type="button"> Logout </button>
+</div>
+</div>
+
+<div id="police_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+	<h3> Are you sure you want to call the police </h3><br>
+	<button id="call_police" type="button"> Yes! </button><br>
+	<button id="cancel_police_call" type="button"> No! </button>
+</div>
+</div>
+
+<div id="medical_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+	<h3> Are you sure you want to call the medical services? </h3>
+	<button id="call_medical" type="button"> Yes! </button><br>
+	<button id="cancel_medical_call" type="button"> No! </button>
+</div>
+</div>
+
+
+<div id="services_contacted_screen">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+	<p> Emergency services have been contacted!</p>
+	<button id="return_to_home"> Return to Home </button>
+	<div class="container-fluid">
+</div>
+
+<div id="warning_timer">
+	<div class="card" style="width: 22rem;">
+		<br>
+		<h3>Safe Run</h3>
+		<br>
+	<h3 id="warning_timer_value"> Warning Timer: </h3>
+	<button id="cancel_timer"> Cancel Call! </button>
+</div>
+</div>
+
+</body>
+<script src="app.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
+<style>
+
+body {
+   text-align: center;
+}
+/*https://stackoverflow.com/questions/39031224/how-to-center-cards-in-bootstrap-4*/
+.card {
+        margin: 0 auto; /* Added */
+        float: none; /* Added */
+        margin-bottom: 10px; /* Added */
+}
+
+</style>
+</html>
+
+
