@@ -43,10 +43,65 @@ function intialSetup(){
 
 window.onload = intialSetup();
 
+function sendLoginRequest(){
+	const username = document.getElementById("login_username").value;
+	const password_guess = document.getElementById("login_password").value;
+	// Make a URL-encoded string for passing POST data:
+          let re = /^[\w_\-]+$/;
+          if(re.test(username))
+		  {
+		  	 alert("login attempted");
+		  }
+		  else
+		  {
+		  	alert("Login failed. Invalid username");
+		  }
+
+}
+
+function sendRegisterRequest(){
+	const username = document.getElementById("login_username_register").value;
+	let password = document.getElementById("login_password_register").value;
+	let repassword = document.getElementById("login_repassword_register").value;
+	const address = document.getElementById("address").value;
+	const phone_number = document.getElementById("phone_number").value;
+	const account_type = document.getElementById("account_type").value;
+
+	if(password != repassword){
+		alert("password do not match ");
+		return;
+	}
+
+	const dataString = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+  
+        let re = /^[\w_\-]+$/;
+        if(re.test(username))
+        {
+        	let xmlHttp = new XMLHttpRequest(); // Initialize our XMLHttpRequest instance
+        	xmlHttp.open("POST", "register.php", true); // Starting a POST request (NEVER send passwords as GET variables!!!)
+	        xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // It's easy to forget this line for POST requests
+	        xmlHttp.addEventListener("load", function(event)
+	        {
+	          const jsonData = JSON.parse(event.target.responseText); 
+	          if(jsonData.success)
+	          {
+	            alert("Registration successful!");
+	          }
+	          else
+	          {
+	            alert("Failed to create user.  "+jsonData.message);
+	          }
+	        }, false); // Bind the callback to the load event
+	        xmlHttp.send(dataString); 
+        }
+        else
+        {
+        	alert("Invalid username; can only contain upper/lowercase letters, numbers, dashes, and underscores");
+        }
+}
 
 login_button.addEventListener("click", function(){
-	login_screen.hidden = true;
-	parent_home_screen.hidden = false;
+	console.log("fuck");
 });
 
 go_to_register_button.addEventListener("click", function(){
@@ -60,8 +115,8 @@ cancel_register_button.addEventListener("click", function(){
 });
 
 register_button.addEventListener("click", function(){
-	login_screen.hidden = false;
-	register_screen.hidden = true;
+	console.log("fuck");
+	sendRegisterRequest();
 });
 
 logout_button.addEventListener("click", function(){
@@ -127,7 +182,7 @@ cancel_submit_child_button.addEventListener("click", function(){
 cancel_change_child_button.addEventListener("click", function(){
 	change_child_screen.hidden = true;
 	parent_home_screen.hidden = false;
-})
+});
 
 
 

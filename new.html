@@ -1,14 +1,21 @@
-<!DOCTYPE HTML >
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<title>App</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+   	<script src="/socket.io/socket.io.js"></script>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+      <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 </head>
 
 
 <body>
+<script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+
 <div id="login_screen">
 	<div class="card" style="width: 22rem;">
 		<br>
@@ -19,6 +26,7 @@
 		Password: 
   		<input type="password" id="login_password" placeholder="password" ><br><br>
   		<button id="login_button" type="button">Login </button><br>
+  	<br>
 	<button id="go_to_register" type="button">Register </button>
 	<br>
 	<br>
@@ -32,21 +40,20 @@
 		<h3></h3>
 		<br>
 		Username: 
-		<input type="text" id="login_username_register" placeholder = "username"><br>
+		<input type="text" id="login_username_register" placeholder = "username"><br><br>
 		Password: 
-  		<input type="password" id="login_password_register" placeholder="password" ><br>
+  		<input type="password" id="login_password_register" placeholder="password" ><br><br>
   		ReEnter Password: 
-  		<input type="password" id="login_repassword_register" placeholder="reenter password" ><br>
+  		<input type="password" id="login_repassword_register" placeholder="reenter password" ><br><br>
   		Home Address:
-  		<input type="text" id="address" placeholder="address" required><br>
+  		<input type="text" id="address" placeholder="address" required><br><br>
   		Phone Number:
-  		<input type="tel" name="telphone" placeholder="888 888 8888" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" maxlength="12" id="phone_number"/> 
+  		<input type="tel" name="telephone" placeholder="888 888 8888" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" maxlength="12" id="phone_number"/> <br><br>
   		Account type: 
-  		<form>
-  			<input type="radio" name="account_type" value="parent" id="parent" checked>Parent
-  			<input type="radio" name="account_type" value="child" id="child">Child<br>  
-  		</form>
+  		<input type="radio" name="parent" value="parent" id="account_type" checked>Parent
+  		<input type="radio" name="child" value="child" id="account_type">Child<br>  
   		<button id="register_button" type="submit"> Register </button> <br>
+  		<br>
   	<button id="cancel_register" type="button">Cancel </button>
   </div>
 </div>
@@ -135,10 +142,12 @@
 </div>
 
 </body>
-<script src="app.js"></script>
+<!--<script src="app.js"></script> -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
+
 
 <style>
 
@@ -153,6 +162,222 @@ body {
 }
 
 </style>
+<script >
+let socketio = io.connect();
+
+	//variables for different screens
+let login_screen = document.getElementById('login_screen');
+let register_screen = document.getElementById('register_screen');
+let parent_home_screen = document.getElementById('parent_home_screen');
+let police_screen = document.getElementById('police_screen');
+let medical_screen = document.getElementById('medical_screen');
+let services_contacted_screen = document.getElementById('services_contacted_screen');
+let change_child_screen = document.getElementById('change_child_screen');
+let add_child_screen = document.getElementById('add_child_screen');
+let child_home_screen = document.getElementById('child_home_screen');
+
+//variables for buttons
+let login_button = document.getElementById('login_button');
+let go_to_register_button = document.getElementById('go_to_register');
+let register_user_button = document.getElementById('register_button');
+let panic_button = document.getElementById('panic_button');
+let medical_button = document.getElementById('medical_button');
+let call_police_button = document.getElementById('call_police');
+let cancel_police_call_button = document.getElementById('cancel_police_call');
+let call_medical_button = document.getElementById('call_medical');
+let cancel_medical_call_button = document.getElementById('cancel_medical_call');
+let cancel_register_button = document.getElementById('cancel_register');
+let logout_button = document.getElementById('logout_button');
+let return_to_home_button = document.getElementById("return_to_home");
+let change_child_button = document.getElementById("change_child");
+let add_child_button = document.getElementById("add_child");
+let submit_new_child_button = document.getElementById("submit_child");
+let cancel_submit_child_button = document.getElementById("cancel_submit_child_button");
+let cancel_change_child_button = document.getElementById("cancel_change_child_button");
+
+var databaseRef = new Firebase('https://safetrek1.firebaseio.com/');
+
+console.log(databaseRef.child("/username/messageField"));
+
+//sets the intial screen settings
+function intialSetup(){
+	login_screen.hidden = false;
+	register_screen.hidden = true;
+	parent_home_screen.hidden = true;
+	police_screen.hidden = true;
+	medical_screen.hidden = true;
+	services_contacted_screen.hidden = true;
+	change_child_screen.hidden = true;
+	add_child_screen.hidden = true;
+	child_home_screen.hidden = true;
+}
+
+window.onload = intialSetup();
+
+let logged_in_user;
+let account_type;
+
+function sendLoginRequest(){
+	const username = document.getElementById("login_username").value;
+	const password_guess = document.getElementById("login_password").value;
+
+	// Make a URL-encoded string for passing POST data:
+          let re = /^[\w_\-]+$/;
+          if(re.test(username))
+		  {
+		  	console.log("username is valid");
+		  	 socketio.emit('login_attempt',{username:username, password_guess:password_guess});
+		  	 socketio.on("user_does_not_exist", function(data){
+		  	 	alert("username " + data['username'] + " is not a registered account ");
+		  	 	return;
+		  	 });
+		  	 socketio.on("successful_login", function(data){
+		  	 	// todo: store the username as a session variable later
+		  	 	console.log("successful login reached");
+		  	 	login_screen.hidden = true;
+		  	 	account_type = data['account_type'];
+		  	 	logged_in_user = username;
+		  	 	if(data['account_type'] == "parent"){
+		  	 		child_home_screen.hidden = false;
+		  	 	}
+		  	 	else{
+		  	 		child_home_screen.hidden = true;
+		  	 	}
+		  	 	// todo: add in listeners for other screens
+		  	 })
+		  	 socketio.on("bad_login", function(data){
+		  	 	console.log("invalid login reached");
+		  	 	alert("not a valid login");
+		  	 	return;
+		  	 })
+		  }
+		  else
+		  {
+		  	alert("Login failed. Invalid username");
+		  }
+}
+
+function sendRegisterRequest(){
+	const username = document.getElementById("login_username_register").value;
+	let password = document.getElementById("login_password_register").value;
+	let repassword = document.getElementById("login_repassword_register").value;
+	const address = document.getElementById("address").value;
+	const phone_number = document.getElementById("phone_number").value;
+	const account_type = document.getElementById("account_type").value;
+	console.log("phone number: " + phone_number)
+	if(password != repassword){
+		alert("password do not match ");
+		return;
+	}
+
+        let re = /^[\w_\-]+$/;
+        if(re.test(username))
+        {
+        	socketio.emit('password_hash',{username:username, password:password, address:address, phone_number:phone_number, account_type:account_type});
+
+    		socketio.on("username_taken", function(data){
+    			alert("username " + data["username"] + " is taken ");
+    			return;
+    		});
+    		socketio.on("user_created", function(data)
+    		{
+    			alert("user " + data['username'] + " was created");
+    			return;
+    		});
+        }
+        else
+        {
+        	alert("Invalid username; can only contain upper/lowercase letters, numbers, dashes, and underscores");
+        	return;
+        }
+}
+
+login_button.addEventListener("click", function(){
+	sendLoginRequest();
+});
+
+go_to_register_button.addEventListener("click", function(){
+	login_screen.hidden = true;
+	register_screen.hidden = false;
+});
+
+cancel_register_button.addEventListener("click", function(){
+	login_screen.hidden = false;
+	register_screen.hidden = true;
+});
+
+register_button.addEventListener("click", function(){
+	sendRegisterRequest();
+	register_screen.hidden = true;
+	login_screen.hidden = false;
+});
+
+logout_button.addEventListener("click", function(){
+	parent_home_screen.hidden = true;
+	login_screen.hidden = false;
+});
+
+panic_button.addEventListener("click", function(){
+	parent_home_screen.hidden = true;
+	police_screen.hidden = false; 
+});
+
+call_police_button.addEventListener("click", function(){
+	police_screen.hidden = true;
+	services_contacted_screen.hidden = false;
+});
+
+cancel_police_call_button.addEventListener("click", function(){
+	police_screen.hidden = true;
+	parent_home_screen.hidden = false;
+})
+
+medical_button.addEventListener("click", function(){
+	medical_screen.hidden = false;
+	parent_home_screen.hidden = true;
+});
+
+cancel_medical_call.addEventListener("click", function(){
+	medical_screen.hidden = true;
+	parent_home_screen.hidden = false;
+});
+
+call_medical_button.addEventListener("click", function(){
+	medical_screen.hidden = true;
+	services_contacted_screen.hidden = false;
+});
+
+return_to_home_button.addEventListener("click", function(){
+	services_contacted_screen.hidden = true;
+	parent_home_screen.hidden = false;
+});
+
+change_child_button.addEventListener("click", function(){
+	parent_home_screen.hidden = true;
+	change_child_screen.hidden = false;
+});
+
+add_child_button.addEventListener("click", function(){
+	parent_home_screen.hidden = true;
+	add_child_screen.hidden = false;
+});
+
+submit_new_child_button.addEventListener("click", function(){
+	parent_home_screen.hidden = false;
+	add_child_screen.hidden = true;
+});
+
+cancel_submit_child_button.addEventListener("click", function(){
+	parent_home_screen.hidden = false;
+	add_child_screen.hidden = true;
+});
+
+cancel_change_child_button.addEventListener("click", function(){
+	change_child_screen.hidden = true;
+	parent_home_screen.hidden = false;
+});
+
+</script>
 </html>
 
 
