@@ -50,8 +50,8 @@
   		Phone Number:
   		<input type="tel" name="telephone" placeholder="888 888 8888" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" maxlength="12" id="phone_number"/> <br><br>
   		Account type: 
-  		<input type="radio" name="parent" value="parent" id="account_type" checked>Parent
-  		<input type="radio" name="child" value="child" id="account_type">Child<br>  
+  		<input type="radio" name="account_type" value="parent" id="account_type_parent">Parent
+  		<input type="radio" name="account_type" value="child" id="account_type_child">Child<br>  
   		<button id="register_button" type="submit"> Register </button> <br>
   		<br>
   	<button id="cancel_register" type="button">Cancel </button>
@@ -92,6 +92,8 @@
 		<h3></h3>
 		<br>
 		<h4> Select a Child</h4>
+		<ul id='children_list'> 
+		</ul>
 		<button id="cancel_change_child_button" type="button"> Cancel </button>
 	</div>
 </div>
@@ -195,10 +197,6 @@ let submit_new_child_button = document.getElementById("submit_child");
 let cancel_submit_child_button = document.getElementById("cancel_submit_child_button");
 let cancel_change_child_button = document.getElementById("cancel_change_child_button");
 
-var databaseRef = new Firebase('https://safetrek1.firebaseio.com/');
-
-console.log(databaseRef.child("/username/messageField"));
-
 //sets the intial screen settings
 function intialSetup(){
 	login_screen.hidden = false;
@@ -216,6 +214,7 @@ window.onload = intialSetup();
 
 let logged_in_user;
 let account_type;
+let selcted_child;
 
 function sendLoginRequest(){
 	const username = document.getElementById("login_username").value;
@@ -225,7 +224,6 @@ function sendLoginRequest(){
           let re = /^[\w_\-]+$/;
           if(re.test(username))
 		  {
-		  	console.log("username is valid");
 		  	 socketio.emit('login_attempt',{username:username, password_guess:password_guess});
 		  	 socketio.on("user_does_not_exist", function(data){
 		  	 	alert("username " + data['username'] + " is not a registered account ");
@@ -233,21 +231,23 @@ function sendLoginRequest(){
 		  	 });
 		  	 socketio.on("successful_login", function(data){
 		  	 	// todo: store the username as a session variable later
-		  	 	console.log("successful login reached");
 		  	 	login_screen.hidden = true;
 		  	 	account_type = data['account_type'];
 		  	 	logged_in_user = username;
 		  	 	if(data['account_type'] == "parent"){
-		  	 		child_home_screen.hidden = false;
+		  	 		parent_home_screen.hidden = false;
 		  	 	}
 		  	 	else{
-		  	 		child_home_screen.hidden = true;
+		  	 		child_home_screen.hidden = false;
 		  	 	}
 		  	 	// todo: add in listeners for other screens
 		  	 })
 		  	 socketio.on("bad_login", function(data){
-		  	 	console.log("invalid login reached");
 		  	 	alert("not a valid login");
+		  	 	return;
+		  	 })
+		  	 socketio.on("no_user_found", function(data){
+		  	 	alert(data['username'] + " is not a valid username");
 		  	 	return;
 		  	 })
 		  }
@@ -263,7 +263,18 @@ function sendRegisterRequest(){
 	let repassword = document.getElementById("login_repassword_register").value;
 	const address = document.getElementById("address").value;
 	const phone_number = document.getElementById("phone_number").value;
-	const account_type = document.getElementById("account_type").value;
+	let account_type;
+	let radios = document.getElementsByName("account_type");
+
+	//sets account_type to the extracted radio value
+	for (let i = 0, length = radios.length; i < length; i++)
+	{
+ 		if (radios[i].checked)
+ 		{
+  		account_type = radios[i].value;
+  		break;
+ 		}
+	}
 	console.log("phone number: " + phone_number)
 	if(password != repassword){
 		alert("password do not match ");
@@ -313,9 +324,15 @@ register_button.addEventListener("click", function(){
 });
 
 logout_button.addEventListener("click", function(){
+	//todo: fix this for child logout
 	parent_home_screen.hidden = true;
+	child_home_screen.hidden = true;
 	login_screen.hidden = false;
+	console.log("logout listener reached");
+	let logged_in_user = undefined;
+	let account_type = undefined;
 });
+
 
 panic_button.addEventListener("click", function(){
 	parent_home_screen.hidden = true;
@@ -352,9 +369,23 @@ return_to_home_button.addEventListener("click", function(){
 	parent_home_screen.hidden = false;
 });
 
+
 change_child_button.addEventListener("click", function(){
 	parent_home_screen.hidden = true;
 	change_child_screen.hidden = false;
+	socketio.emit('get_all_children', {parent:logged_in_user});
+	socketio.on('all_children', function(data){
+		let childrenArray = data['all_children'];
+		for(child: childrenArray){
+			let html_list = document.getElementById('children_list');
+			let list_iteam = document.createElement("li");
+			list_iteam.innerText = child;
+			list_iteam.addEventListener('click', function(){
+				//todo: send a request to get the childs data
+			});
+			html_list.appendChild(list_iteam);
+		}
+	});
 });
 
 add_child_button.addEventListener("click", function(){
@@ -365,7 +396,15 @@ add_child_button.addEventListener("click", function(){
 submit_new_child_button.addEventListener("click", function(){
 	parent_home_screen.hidden = false;
 	add_child_screen.hidden = true;
+	let child = document.getElementById("new_child_username").value;
+	socketio.emit('add_child', {parent:logged_in_user, child:child});
+	//if the child is added successfully
+	socketio.on('child_added',function(data){
+		alert(data['child'] + " has been added");
 });
+	//todo: check if the child exists 
+});
+
 
 cancel_submit_child_button.addEventListener("click", function(){
 	parent_home_screen.hidden = false;

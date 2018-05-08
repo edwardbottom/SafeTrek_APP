@@ -37,11 +37,8 @@ socket.on('password_hash', function(data){
     let hashedPassword = bcrypt.hashSync(password, 10);
     let username = data['username'];
     let address = data['address'];
-    console.log("address: " + address);
     let phoneNumber = data['phone_number'];
-    console.log("phoneNumber: " + phoneNumber);
     let account_type = data['account_type'];
-    console.log("account_type: " + account_type);
 
     MongoClient.connect(MONGO_URL, (err, db) => {  
   	if (err) {
@@ -78,8 +75,6 @@ socket.on('password_hash', function(data){
 socket.on('login_attempt', function(data){
 	let username = data['username'];
 	let password = data['password_guess'];
-	console.log("server side reached");
-	console.log("the username is " + username);
 	
 	var MongoClient = require('mongodb').MongoClient
 
@@ -89,26 +84,71 @@ socket.on('login_attempt', function(data){
   	if (err) return
 
   	var collection = db.collection('users')
+
+  	//extract the user from the database
     collection.find({username: username}).toArray(function(err, docs) {
-    console.log(docs[0]);
     userObj = docs[0];
-    console.log(userObj.username + " is the username");
-    console.log("user password is " + password);
-    console.log(userObj.password);
-    console.log(passwordHash.verify(userObj.password, password));
+    if(userObj == undefined){
+    	io.sockets.emit("no_user_found", {username:username});
+    	return;
+    }
     if(bcrypt.compareSync(password, userObj.password)){
-  		console.log("password verified");
   		io.sockets.emit("successful_login", {username:username,account_type:userObj.account_type});
   	}
   	else{
-  		console.log("password not valid");
   		io.sockets.emit("bad_login", {username:username});
   	}
     db.close()
     })
 })
-
-
 }); //end socket for login
 
+socket.on("add_child", function(data){
+	console.log("add child socket reached ");
+	let child = data['child'];
+	console.log(child + " is child");
+	let parent = data['parent'];
+	console.log(parent + " is parent");
+	MongoClient.connect(MONGO_URL, (err, db) => {  
+  	if (err) {
+    	return console.log(err);
+  	}
+
+  	// Do something with db here, like inserting a record
+  	db.collection('relationships').insertOne(
+ 	{
+      parent: parent,
+      child: child,
+    },
+    function (err, res) {
+      if (err) {
+        db.close();
+        return console.log(err);
+      }
+      // Success
+      db.close();
+      io.sockets.emit("child_added",{child:child});   
+    }
+  )
+}); //end database connection
+
+});
+
+socket.on("get_all_children", function(data){
+	var MongoClient = require('mongodb').MongoClient
+
+	var URL = 'mongodb://safetrek:safetrek@ds215910.mlab.com:15910/safetrek';
+
+	MongoClient.connect(URL, function(err, db) {
+  	if (err) return
+
+  	var collection = db.collection('relationships')
+
+  	//extract the user from the database
+    collection.find({parent: data['parent']}).toArray(function(err, docs) {
+    db.close()
+    })
+    io.sockets.emit("all_children", {child_array:docs});
+})//end database connection
+})//end get all children socket
 });//end socket.io connection
