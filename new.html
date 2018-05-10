@@ -58,23 +58,25 @@
   </div>
 </div>
 
-<div id="parent_home_screen">
+<div id="home_screen">
 	<div class="card" style="width: 22rem;">
 		<br>
 		<h3></h3>
 		<br>
-	<p id="child_location">Child Name: </p><br>
-	<p id="child_location">Child Location: </p><br>
-	<p id="movement">Child Movement: </p><br>
-	<button id="change_child" type="button">Change Child </button><br>
-	<button id="add_child" type="button">Add Child </button><br>
+	<div id="parent_features">
+		<p id="child_name">Child Name: None </p><br>
+		<p id="child_location">Child Location: </p><br>
+		<p id="movement">Child Movement: </p><br>
+		<button id="change_child" type="button">Change Child </button><br>
+		<button id="add_child" type="button">Add Child </button><br>
+	</div>
 	<button id="panic_button" type="button">Panic </button><br>
 	<button id="medical_button" type="button">Medical </button><br>
 	<button id="logout_button" type="button">Logout </button>
 </div>
 </div>
 
-<div id="child_home_screen">
+<!--<div id="child_home_screen">
 	<div class="card" style="width: 22rem;">
 		<br>
 		<h3></h3>
@@ -84,7 +86,7 @@
 	<button id="parent_button" type="button">Parent </button><br>
 	<button id="logout_button" type="button">Logout </button>
 	</div>
-</div>
+</div> -->
 
 <div id="change_child_screen">
 	<div class="card" style="width: 22rem;">
@@ -132,7 +134,6 @@
 </div>
 </div>
 
-
 <div id="services_contacted_screen">
 	<div class="card" style="width: 22rem;">
 		<br>
@@ -167,16 +168,16 @@ body {
 <script >
 let socketio = io.connect();
 
-	//variables for different screens
+//variables for different screens
 let login_screen = document.getElementById('login_screen');
 let register_screen = document.getElementById('register_screen');
-let parent_home_screen = document.getElementById('parent_home_screen');
 let police_screen = document.getElementById('police_screen');
 let medical_screen = document.getElementById('medical_screen');
 let services_contacted_screen = document.getElementById('services_contacted_screen');
 let change_child_screen = document.getElementById('change_child_screen');
 let add_child_screen = document.getElementById('add_child_screen');
-let child_home_screen = document.getElementById('child_home_screen');
+let home_screen = document.getElementById("home_screen");
+let parent_features = document.getElementById("parent_features");
 
 //variables for buttons
 let login_button = document.getElementById('login_button');
@@ -201,13 +202,13 @@ let cancel_change_child_button = document.getElementById("cancel_change_child_bu
 function intialSetup(){
 	login_screen.hidden = false;
 	register_screen.hidden = true;
-	parent_home_screen.hidden = true;
+	home_screen.hidden = true;
 	police_screen.hidden = true;
 	medical_screen.hidden = true;
 	services_contacted_screen.hidden = true;
 	change_child_screen.hidden = true;
 	add_child_screen.hidden = true;
-	child_home_screen.hidden = true;
+	//child_home_screen.hidden = true;
 }
 
 window.onload = intialSetup();
@@ -216,10 +217,23 @@ let logged_in_user;
 let account_type;
 let selcted_child;
 
+function loadHomeScreen(){
+	if(account_type == "parent"){
+		home_screen.hidden = false;
+		parent_features.hidden = false;
+	}
+	else{
+		home_screen.hidden = false;
+		parent_features.hidden = true;
+	}
+}
+
 function sendLoginRequest(){
 	const username = document.getElementById("login_username").value;
 	const password_guess = document.getElementById("login_password").value;
 
+	document.getElementById("login_username").value = "";
+	document.getElementById("login_password").value = "";
 	// Make a URL-encoded string for passing POST data:
           let re = /^[\w_\-]+$/;
           if(re.test(username))
@@ -230,18 +244,11 @@ function sendLoginRequest(){
 		  	 	return;
 		  	 });
 		  	 socketio.on("successful_login", function(data){
-		  	 	// todo: store the username as a session variable later
 		  	 	login_screen.hidden = true;
 		  	 	account_type = data['account_type'];
 		  	 	logged_in_user = username;
-		  	 	if(data['account_type'] == "parent"){
-		  	 		parent_home_screen.hidden = false;
-		  	 	}
-		  	 	else{
-		  	 		child_home_screen.hidden = false;
-		  	 	}
-		  	 	// todo: add in listeners for other screens
-		  	 })
+		  	 	loadHomeScreen();
+		  	 });
 		  	 socketio.on("bad_login", function(data){
 		  	 	alert("not a valid login");
 		  	 	return;
@@ -265,6 +272,12 @@ function sendRegisterRequest(){
 	const phone_number = document.getElementById("phone_number").value;
 	let account_type;
 	let radios = document.getElementsByName("account_type");
+
+	document.getElementById("login_username_register").value = "";
+	document.getElementById("login_password_register").value = "";
+	document.getElementById("login_repassword_register").value = "";
+	document.getElementById("address").value = "";
+	document.getElementById("phone_number").value = "";
 
 	//sets account_type to the extracted radio value
 	for (let i = 0, length = radios.length; i < length; i++)
@@ -303,6 +316,8 @@ function sendRegisterRequest(){
         }
 }
 
+
+
 login_button.addEventListener("click", function(){
 	sendLoginRequest();
 });
@@ -324,18 +339,15 @@ register_button.addEventListener("click", function(){
 });
 
 logout_button.addEventListener("click", function(){
-	//todo: fix this for child logout
-	parent_home_screen.hidden = true;
-	child_home_screen.hidden = true;
+	home_screen.hidden = true;
 	login_screen.hidden = false;
-	console.log("logout listener reached");
 	let logged_in_user = undefined;
 	let account_type = undefined;
 });
 
 
 panic_button.addEventListener("click", function(){
-	parent_home_screen.hidden = true;
+	home_screen.hidden = true;
 	police_screen.hidden = false; 
 });
 
@@ -346,17 +358,17 @@ call_police_button.addEventListener("click", function(){
 
 cancel_police_call_button.addEventListener("click", function(){
 	police_screen.hidden = true;
-	parent_home_screen.hidden = false;
+	loadHomeScreen();
 })
 
 medical_button.addEventListener("click", function(){
 	medical_screen.hidden = false;
-	parent_home_screen.hidden = true;
+	home_screen.hidden = true;
 });
 
 cancel_medical_call.addEventListener("click", function(){
 	medical_screen.hidden = true;
-	parent_home_screen.hidden = false;
+	loadHomeScreen();
 });
 
 call_medical_button.addEventListener("click", function(){
@@ -366,35 +378,39 @@ call_medical_button.addEventListener("click", function(){
 
 return_to_home_button.addEventListener("click", function(){
 	services_contacted_screen.hidden = true;
-	parent_home_screen.hidden = false;
+	loadHomeScreen();
 });
 
 
 change_child_button.addEventListener("click", function(){
-	parent_home_screen.hidden = true;
+	home_screen.hidden = true;
 	change_child_screen.hidden = false;
 	socketio.emit('get_all_children', {parent:logged_in_user});
 	socketio.on('all_children', function(data){
-		let childrenArray = data['all_children'];
-		for(child: childrenArray){
-			let html_list = document.getElementById('children_list');
+		let childrenArray = data['child_array'];
+		let html_list = document.getElementById('children_list');
+		html_list.innerHTML = "";
+		for(let i = 0; i < childrenArray.length; i++){
 			let list_iteam = document.createElement("li");
-			list_iteam.innerText = child;
+			list_iteam.innerText = childrenArray[i].child;
 			list_iteam.addEventListener('click', function(){
-				//todo: send a request to get the childs data
+				selcted_child = list_iteam.innerText;
+				document.getElementById("child_name").innerText = "Child Name: " + selcted_child;
+				alert("the child " + selcted_child + " has been selected");
 			});
+			list_iteam.setAttribute("id", "Div" + i);
 			html_list.appendChild(list_iteam);
 		}
 	});
 });
 
 add_child_button.addEventListener("click", function(){
-	parent_home_screen.hidden = true;
+	home_screen.hidden = true;
 	add_child_screen.hidden = false;
 });
 
 submit_new_child_button.addEventListener("click", function(){
-	parent_home_screen.hidden = false;
+	loadHomeScreen();
 	add_child_screen.hidden = true;
 	let child = document.getElementById("new_child_username").value;
 	socketio.emit('add_child', {parent:logged_in_user, child:child});
@@ -402,18 +418,23 @@ submit_new_child_button.addEventListener("click", function(){
 	socketio.on('child_added',function(data){
 		alert(data['child'] + " has been added");
 });
-	//todo: check if the child exists 
+	//if the child does not exist
+	socketio.on('child_not_added', function(data){
+		alert(data['child'] + " does not exist");
+	})
 });
 
 
 cancel_submit_child_button.addEventListener("click", function(){
-	parent_home_screen.hidden = false;
+	home_screen.hidden = false;
 	add_child_screen.hidden = true;
 });
 
 cancel_change_child_button.addEventListener("click", function(){
+	console.log("exit listener reached");
+	let list = document.getElementById("children_list");
 	change_child_screen.hidden = true;
-	parent_home_screen.hidden = false;
+	loadHomeScreen();
 });
 
 </script>

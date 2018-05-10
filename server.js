@@ -104,34 +104,56 @@ socket.on('login_attempt', function(data){
 }); //end socket for login
 
 socket.on("add_child", function(data){
-	console.log("add child socket reached ");
 	let child = data['child'];
-	console.log(child + " is child");
 	let parent = data['parent'];
-	console.log(parent + " is parent");
-	MongoClient.connect(MONGO_URL, (err, db) => {  
-  	if (err) {
-    	return console.log(err);
-  	}
+	var MongoClient = require('mongodb').MongoClient;
+	let childExists = false;
+	var URL = 'mongodb://safetrek:safetrek@ds215910.mlab.com:15910/safetrek';
 
-  	// Do something with db here, like inserting a record
-  	db.collection('relationships').insertOne(
- 	{
-      parent: parent,
-      child: child,
-    },
-    function (err, res) {
-      if (err) {
-        db.close();
-        return console.log(err);
-      }
-      // Success
-      db.close();
-      io.sockets.emit("child_added",{child:child});   
+	//checks to see if the child exists
+	MongoClient.connect(URL, function(err, db){
+  		if (err) return
+  	
+  		var collection = db.collection('users');
+  		//extract the user from the database
+    	collection.find({username: child}).toArray(function(err, docs) {
+    		console.log(docs.length);
+    		console.log(docs[0]);
+    		if(docs[0] == data['child']){
+    			childExists = true;
+    		}
+    		db.close();
+    	});
+	});//closes database
+
+	if(childExists){
+		//creates the parent child relationships 
+		MongoClient.connect(URL, function(err, db){  
+  			if (err) {
+    			return console.log(err);
+  			}
+
+  			// Do something with db here, like inserting a record
+  			db.collection('relationships').insertOne(
+ 			{
+      			parent: parent,
+      			child: child,
+    		},
+    		function (err, res) {
+      			if (err) {
+        			db.close();
+        			return console.log(err);
+      			}
+      		// Success
+      		db.close();
+      		io.sockets.emit("child_added",{child:child});   
+    		});
+		}); //end database connection
+	}//end exists conditional
+    else{
+    	console.log("else case reached");
+    	io.sockets.emit("child_not_valid",{child:child});   
     }
-  )
-}); //end database connection
-
 });
 
 socket.on("get_all_children", function(data){
@@ -141,14 +163,16 @@ socket.on("get_all_children", function(data){
 
 	MongoClient.connect(URL, function(err, db) {
   	if (err) return
-
-  	var collection = db.collection('relationships')
-
+  	//console.log("database opened");
+  	var collection = db.collection('relationships');
   	//extract the user from the database
     collection.find({parent: data['parent']}).toArray(function(err, docs) {
-    db.close()
-    })
-    io.sockets.emit("all_children", {child_array:docs});
+    	console.log(docs.length);
+    	console.log(docs[0]);
+    	io.sockets.emit("all_children", {child_array:docs});
+    	db.close();
+    });
+  	
 })//end database connection
 })//end get all children socket
 });//end socket.io connection
