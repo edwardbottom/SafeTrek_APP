@@ -10,6 +10,16 @@
       <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
       <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
       <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
+    <style>
+        body {
+            text-align: center;
+        }
+        #map{
+           text-align: center;
+           margin: 0 auto;  
+        }
+    </style>
 </head>
 
 
@@ -62,11 +72,10 @@
 	<div class="card" style="width: 22rem;">
 		<br>
 		<h3></h3>
-		<br>
 	<div id="parent_features">
-		<p id="child_name">Child Name: None </p><br>
-		<p id="child_location">Child Location: </p><br>
-		<p id="movement">Child Movement: </p><br>
+		<p id="child_name">Child Name: None </p>
+    	<div id="map" style="width: 275px; height: 275px"></div>
+    	<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
 		<button id="change_child" type="button">Change Child </button><br>
 		<button id="add_child" type="button">Add Child </button><br>
 	</div>
@@ -75,18 +84,6 @@
 	<button id="logout_button" type="button">Logout </button>
 </div>
 </div>
-
-<!--<div id="child_home_screen">
-	<div class="card" style="width: 22rem;">
-		<br>
-		<h3></h3>
-		<br>
-	<button id="panic_button" type="button">Panic </button><br>
-	<button id="medical_button" type="button">Medical </button><br>
-	<button id="parent_button" type="button">Parent </button><br>
-	<button id="logout_button" type="button">Logout </button>
-	</div>
-</div> -->
 
 <div id="change_child_screen">
 	<div class="card" style="width: 22rem;">
@@ -198,6 +195,13 @@ let submit_new_child_button = document.getElementById("submit_child");
 let cancel_submit_child_button = document.getElementById("cancel_submit_child_button");
 let cancel_change_child_button = document.getElementById("cancel_change_child_button");
 
+//universal variables
+let logged_in_user;
+let account_type;
+let selcted_child;
+let locTimer;
+let getLocTimer;
+
 //sets the intial screen settings
 function intialSetup(){
 	login_screen.hidden = false;
@@ -208,19 +212,29 @@ function intialSetup(){
 	services_contacted_screen.hidden = true;
 	change_child_screen.hidden = true;
 	add_child_screen.hidden = true;
-	//child_home_screen.hidden = true;
 }
 
+//loads the page
 window.onload = intialSetup();
 
-let logged_in_user;
-let account_type;
-let selcted_child;
 
 function loadHomeScreen(){
 	if(account_type == "parent"){
 		home_screen.hidden = false;
 		parent_features.hidden = false;
+        var map = L.map('map').setView([38.5852730, -90.4103930], 14);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+        //https://leafletjs.com/examples/quick-start/
+        var popup = L.popup()
+            .setLatLng([38.5852730, -90.4103930])
+            .setContent("I am a standalone popup.")
+            .openOn(map);
 	}
 	else{
 		home_screen.hidden = false;
@@ -246,7 +260,13 @@ function sendLoginRequest(){
 		  	 socketio.on("successful_login", function(data){
 		  	 	login_screen.hidden = true;
 		  	 	account_type = data['account_type'];
+		  	 	if(account_type == 'child'){
+		  	 		locTimer = setInterval(tryGeolocation, 10000);
+		  	 		console.log("beacon interval set");
+		  	 	}
+		  	 	console.log("the account type was set to " + account_type);
 		  	 	logged_in_user = username;
+		  	 	console.log("the logged in user was set to " + logged_in_user);
 		  	 	loadHomeScreen();
 		  	 });
 		  	 socketio.on("bad_login", function(data){
@@ -270,7 +290,7 @@ function sendRegisterRequest(){
 	let repassword = document.getElementById("login_repassword_register").value;
 	const address = document.getElementById("address").value;
 	const phone_number = document.getElementById("phone_number").value;
-	let account_type;
+	let account_type_r;
 	let radios = document.getElementsByName("account_type");
 
 	document.getElementById("login_username_register").value = "";
@@ -284,7 +304,7 @@ function sendRegisterRequest(){
 	{
  		if (radios[i].checked)
  		{
-  		account_type = radios[i].value;
+  		account_type_r = radios[i].value;
   		break;
  		}
 	}
@@ -297,7 +317,7 @@ function sendRegisterRequest(){
         let re = /^[\w_\-]+$/;
         if(re.test(username))
         {
-        	socketio.emit('password_hash',{username:username, password:password, address:address, phone_number:phone_number, account_type:account_type});
+        	socketio.emit('password_hash',{username:username, password:password, address:address, phone_number:phone_number, account_type:account_type_r});
 
     		socketio.on("username_taken", function(data){
     			alert("username " + data["username"] + " is taken ");
@@ -315,7 +335,6 @@ function sendRegisterRequest(){
         	return;
         }
 }
-
 
 
 login_button.addEventListener("click", function(){
@@ -341,8 +360,16 @@ register_button.addEventListener("click", function(){
 logout_button.addEventListener("click", function(){
 	home_screen.hidden = true;
 	login_screen.hidden = false;
-	let logged_in_user = undefined;
-	let account_type = undefined;
+	if(account_type == 'child'){
+		clearInterval(locTimer);
+		console.log("interval timer cleared");
+	}
+	else{
+		clearInterval(getLocTimer);
+		console.log("get location timer cleared");
+	}
+	logged_in_user = undefined;
+	account_type = undefined;
 });
 
 
@@ -394,9 +421,13 @@ change_child_button.addEventListener("click", function(){
 			let list_iteam = document.createElement("li");
 			list_iteam.innerText = childrenArray[i].child;
 			list_iteam.addEventListener('click', function(){
+				clearInterval(getLocTimer);
+				console.log("get location timer cleared");
 				selcted_child = list_iteam.innerText;
 				document.getElementById("child_name").innerText = "Child Name: " + selcted_child;
 				alert("the child " + selcted_child + " has been selected");
+				getLocTimer = setInterval( function() {getChildsLocation(logged_in_user,selcted_child);}, 10000);
+		  	 	console.log("get location interval has been set");
 			});
 			list_iteam.setAttribute("id", "Div" + i);
 			html_list.appendChild(list_iteam);
@@ -436,6 +467,66 @@ cancel_change_child_button.addEventListener("click", function(){
 	change_child_screen.hidden = true;
 	loadHomeScreen();
 });
+
+//https://stackoverflow.com/questions/39366758/geolocation-without-ssl-connection
+//if geolocation is successfull
+var browserGeolocationSuccess = function(position) {
+    console.log("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+    let latitude = position.coords.latitude;
+    let longitude = position.coords.longitude;
+    socketio.emit('update_child_location', {latitude:latitude, longitude:longitude, child:logged_in_user});
+};
+
+//if geolcation fails
+var browserGeolocationFail = function(error) {
+    switch (error.code) {
+        case error.TIMEOUT:
+            alert("Browser geolocation error !\n\nTimeout.");
+            break;
+        case error.PERMISSION_DENIED:
+            if(error.message.indexOf("Only secure origins are allowed") == 0) {
+                tryAPIGeolocation();
+            }
+            break;
+        case error.POSITION_UNAVAILABLE:
+            // dirty hack for safari
+            if(error.message.indexOf("Origin does not have permission to use Geolocation service") == 0) {
+                tryAPIGeolocation();
+            } else {
+                alert("Browser geolocation error !\n\nPosition unavailable.");
+            }
+            break;
+    }
+};
+
+//try geolocation 
+var tryGeolocation = function() {
+	console.log("try line reached");
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            browserGeolocationSuccess,
+            browserGeolocationFail,
+            {maximumAge: 50000, timeout: 20000, enableHighAccuracy: true});
+    }
+};
+
+function accountType(){
+	console.log("the account type is "+ account_type);
+}
+
+function getChildsLocation(parent, child){
+	socketio.emit('getChildsLocation', {parent:parent, child:child});
+	socketio.on('location_not_available', function(data){
+		console.log("the child's location is not available ");
+	});
+	socketio.on('child_location', function(data){
+		let location_data = location_data['data'];
+		let streetAddress = location_data.streetAddress;
+		let neighborhood = location_data.neighborhood;
+		let pointOfIntrest = location_data.pointOfIntrest;
+		console.log(streetAddress + " is the child's street address");
+	});
+}
 
 </script>
 </html>

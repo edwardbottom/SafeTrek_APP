@@ -1,26 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>HTML5 Geolocation</title>
-<script type="text/javascript">
-    function showPosition(){
-        if(navigator.geolocation){
-            navigator.geolocation.getCurrentPosition(function(position){
-                var positionInfo = "Your current position is (" + "Latitude: " + position.coords.latitude + ", " + "Longitude: " + position.coords.longitude + ")";
-                document.getElementById("result").innerHTML = positionInfo;
-                console.log(positionInfo);
-            });
-        } else{
-            alert("Sorry, your browser does not support HTML5 geolocation.");
-        }
+<script>
+var browserGeolocationSuccess = function(position) {
+    alert("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+};
+
+var browserGeolocationFail = function(error) {
+    switch (error.code) {
+        case error.TIMEOUT:
+            alert("Browser geolocation error !\n\nTimeout.");
+            break;
+        case error.PERMISSION_DENIED:
+            if(error.message.indexOf("Only secure origins are allowed") == 0) {
+                tryAPIGeolocation();
+            }
+            break;
+        case error.POSITION_UNAVAILABLE:
+            // dirty hack for safari
+            if(error.message.indexOf("Origin does not have permission to use Geolocation service") == 0) {
+                tryAPIGeolocation();
+            } else {
+                alert("Browser geolocation error !\n\nPosition unavailable.");
+            }
+            break;
     }
+};
+
+var tryGeolocation = function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            browserGeolocationSuccess,
+            browserGeolocationFail,
+            {maximumAge: 50000, timeout: 20000, enableHighAccuracy: true});
+    }
+};
+
+tryGeolocation();
 </script>
-</head>
-<body>
-    <div id="result">
-        <!--Position information will be inserted here-->
-    </div>
-    <button type="button" onclick="showPosition();">Show Position</button>
-</body>
-</html>

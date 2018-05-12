@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Leaflet Map</title>
+    <meta charset="utf-8" />
+    <link 
+        rel="stylesheet" 
+        href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"
+    />
+    <style>
+        body {
+            text-align: center;
+        }
+        #map{
+           text-align: center;
+           margin: 0 auto;  
+        }
+    </style>
+</head>
+<body>
+    <!--http://bl.ocks.org/d3noob/7644920 -->
+    <div id="map" style="width: 275px; height: 275px"></div>
+
+    <script
+        src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js">
+    </script>
+
+    <script>
+        var map = L.map('map').setView([38.5852730, -90.4103930], 14);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+        //https://leafletjs.com/examples/quick-start/
+        var popup = L.popup()
+            .setLatLng([38.5852730, -90.4103930])
+            .setContent("I am a standalone popup.")
+            .openOn(map);
+
+    </script>
+</body>

@@ -27,8 +27,7 @@ const MongoClient = require('mongodb').MongoClient;
 
 const MONGO_URL = 'mongodb://safetrek:safetrek@ds215910.mlab.com:15910/safetrek';
 
-
-// Do the Socket.IO magic:
+// create the socket
 let io = socketio.listen(app);
 io.sockets.on("connection", function(socket)
 {
@@ -172,7 +171,105 @@ socket.on("get_all_children", function(data){
     	io.sockets.emit("all_children", {child_array:docs});
     	db.close();
     });
-  	
 })//end database connection
 })//end get all children socket
+
+
+socket.on("update_child_location", function(data){
+	let latitude = data['latitude'];
+	let longitude = data['longitude'];
+	let child = data['child'];
+	let valueExists = true;
+	console.log("the latitude is " + latitude + " and the longitude is " + longitude);
+	MongoClient.connect(MONGO_URL, (err, db) => {  
+		//checks for an error
+  		if (err) {return console.log(err);}
+  			// updates the existing location
+  		db.collection("locations").find({child:child}).toArray(function(err, docs) {
+    		console.log(docs.length + " is the length of the array");
+    		if(docs.length != 0){
+    			console.log("the length is not zero, a value exists for the child");
+    			valueExists = true;
+    			console.log(valueExists + " is the value for the conditional");
+    			}
+    		else{
+    			valueExists = false;
+    		}
+    		
+  		if(valueExists){
+  			console.log("the update conditional was reached");
+  			var myquery = { child:child };
+  			var newvalues = { $set: {child:child,latitude:latitude,longitude:longitude}};
+  			db.collection("locations").updateOne(myquery, newvalues, function(err, res) {
+    			if (err) throw err;
+    			console.log("1 document updated");
+    			db.close();
+  			},
+  				function (err, res) {
+      				if (err) {
+        				db.close();
+        				return console.log(err);
+      				}
+      				// Success
+      				db.close();
+    			}
+    		);
+		}
+  		//create a new location for a child
+  		else if (!valueExists){
+  			console.log("the false conditional was reached");
+  			// Do something with db here, like inserting a record
+  			db.collection('locations').insertOne(
+ 			{
+      			child: child,
+      			latitude: latitude,
+      			longitude: longitude
+    		},
+    		function (err, res) {
+      			if (err) {
+        			db.close();
+        			return console.log(err);
+      			}
+      		// Success
+      		db.close();
+    		});
+  		}//end else case
+  		});
+  	});//end database connection
+	}); //end socket connection
+socket.on("getChildsLocation", function(data){
+	let parent = data['parent'];
+	let child = data['child'];
+
+	var MongoClient = require('mongodb').MongoClient
+
+	var URL = 'mongodb://safetrek:safetrek@ds215910.mlab.com:15910/safetrek';
+
+	MongoClient.connect(URL, function(err, db) {
+  	if (err) return
+  	var collection = db.collection('locations');
+
+  	//extract the user from the database
+    collection.find({child:child}).toArray(function(err, docs) {
+    	console.log(docs.length);
+    	if(docs.length == 0){
+    		io.sockets.emit("location_not_available", {child:child,parent:parent})
+    	}
+    	else{
+    		//https://www.npmjs.com/package/reverse-geocoding
+    		console.log(docs[0]);
+    		let latitude = docs[0].latitude;
+    		let longitude = docs[0].longitude;
+    		var geocoding = new require('reverse-geocoding');
+			var config = {
+    			'latitude': latitude,
+    			'longitude': longitude
+			};
+			console.log("config made" + config);
+    	}
+    	db.close();
+    });
+})
+})
 });//end socket.io connection
+
