@@ -74,7 +74,7 @@
 		<h3></h3>
 	<div id="parent_features">
 		<p id="child_name">Child Name: None </p>
-    	<div id="map" style="width: 275px; height: 275px"></div>
+    	<div id="outtermap"><div id="map" style="width: 275px; height: 275px"></div></div>
     	<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
 		<button id="change_child" type="button">Change Child </button><br>
 		<button id="add_child" type="button">Add Child </button><br>
@@ -201,6 +201,8 @@ let account_type;
 let selcted_child;
 let locTimer;
 let getLocTimer;
+let latitude = 51.505;
+let longitude = -0.09;
 
 //sets the intial screen settings
 function intialSetup(){
@@ -218,23 +220,27 @@ function intialSetup(){
 window.onload = intialSetup();
 
 
+
 function loadHomeScreen(){
 	if(account_type == "parent"){
 		home_screen.hidden = false;
 		parent_features.hidden = false;
-        var map = L.map('map').setView([38.5852730, -90.4103930], 14);
-        mapLink = 
+		if(selcted_child == undefined){
+        	var map = L.map('map').setView([latitude, longitude], 14);
+        	mapLink = 
             '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-        L.tileLayer(
-            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; ' + mapLink + ' Contributors',
-            maxZoom: 18,
-            }).addTo(map);
-        //https://leafletjs.com/examples/quick-start/
-        var popup = L.popup()
-            .setLatLng([38.5852730, -90.4103930])
-            .setContent("I am a standalone popup.")
-            .openOn(map);
+        	L.tileLayer(
+            	'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            	attribution: '&copy; ' + mapLink + ' Contributors',
+            	maxZoom: 18,
+            	}).addTo(map);
+
+        	//https://leafletjs.com/examples/quick-start/
+        	var popup = L.popup()
+            	.setLatLng([latitude, longitude])
+            	.setContent(String(selcted_child))
+            	.openOn(map);
+		}
 	}
 	else{
 		home_screen.hidden = false;
@@ -510,21 +516,31 @@ var tryGeolocation = function() {
     }
 };
 
-function accountType(){
-	console.log("the account type is "+ account_type);
-}
-
 function getChildsLocation(parent, child){
 	socketio.emit('getChildsLocation', {parent:parent, child:child});
 	socketio.on('location_not_available', function(data){
-		console.log("the child's location is not available ");
+		alert("the child's location is not available ");
+		return "failed to get location";
 	});
 	socketio.on('child_location', function(data){
-		let location_data = location_data['data'];
-		let streetAddress = location_data.streetAddress;
-		let neighborhood = location_data.neighborhood;
-		let pointOfIntrest = location_data.pointOfIntrest;
-		console.log(streetAddress + " is the child's street address");
+		latitude = data['latitude'];
+		longitude = data['longitude'];
+		console.log(data['latitude'] + " is latitude and " + data['longitude'] + " is longitude");
+		document.getElementById('outtermap').innerHTML = "<div id='map' style='width: 275px; height: 275px;'></div>";
+        var map = L.map('map').setView([latitude, longitude], 14);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+
+        //https://leafletjs.com/examples/quick-start/
+        var popup = L.popup()
+            .setLatLng([latitude, longitude])
+            .setContent(String(selcted_child))
+            .openOn(map);
 	});
 }
 

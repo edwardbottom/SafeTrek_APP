@@ -256,16 +256,10 @@ socket.on("getChildsLocation", function(data){
     		io.sockets.emit("location_not_available", {child:child,parent:parent})
     	}
     	else{
-    		//https://www.npmjs.com/package/reverse-geocoding
     		console.log(docs[0]);
     		let latitude = docs[0].latitude;
     		let longitude = docs[0].longitude;
-    		var geocoding = new require('reverse-geocoding');
-			var config = {
-    			'latitude': latitude,
-    			'longitude': longitude
-			};
-			console.log("config made" + config);
+			io.sockets.emit("child_location", {latitude:latitude, longitude:longitude});
     	}
     	db.close();
     });
