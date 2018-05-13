@@ -258,7 +258,7 @@ function loadHomeScreen(){
 		}
 	}
 	//load the childs screen
-	else{
+	else if (account_type == "child"){
 		home_screen.hidden = false;
 		parent_features.hidden = true;
 	}
@@ -272,46 +272,51 @@ function sendLoginRequest(){
 	document.getElementById("login_username").value = "";
 	document.getElementById("login_password").value = "";
 	//regex check for invalid characters
-          let re = /^[\w_\-]+$/;
-          if(re.test(username))
-		  {
-		  	if(logged_in_user == undefined){
+        let re = /^[\w_\-]+$/;
+        if(re.test(username))
+		{
 		  		socketio.emit('login_attempt',{username:username, password_guess:password_guess});
 		  	 	socketio.on("user_does_not_exist", function(data){
-		  	 		alert("username " + data['username'] + " is not a registered account ");
-		  	 		return;
+		  	 		if(logged_in_user === undefined && account_type === undefined){
+		  	 			alert("username " + data['username'] + " is not a registered account ");
+		  	 			return;
+		  	 		}
 		  	 	});
-		  	 }
-		  	 if(logged_in_user == undefined){
 		  	 	//socket for a successful login
 		  	 	socketio.on("successful_login", function(data){
-		  	 		login_screen.hidden = true;
-		  	 		account_type = data['account_type'];
-		  	 		if(account_type == 'child'){
-		  	 			locTimer = setInterval(tryGeolocation, 10000);
-		  	 			console.log("beacon interval set");
+		  	 		if(logged_in_user === undefined && account_type === undefined){
+		  	 			login_screen.hidden = true;
+		  	 			account_type = data['account_type'];
+		  	 			console.log("the account type was fucking changed!!!!!!!!!!!!!!!!!!!!!!!!!!!11")
+		  	 			if(account_type == 'child'){
+		  	 				locTimer = setInterval(tryGeolocation, 10000);
+		  	 				console.log("beacon interval set");
+		  	 			}
+		  	 			console.log("the account type was set to " + account_type);
+		  	 			logged_in_user = username;
+		  	 			console.log("the logged in user was set to " + logged_in_user);
+		  	 			loadHomeScreen();
 		  	 		}
-		  	 		console.log("the account type was set to " + account_type);
-		  	 		logged_in_user = username;
-		  	 		console.log("the logged in user was set to " + logged_in_user);
-		  	 		loadHomeScreen();
 		  	 	});
 		  	 	//socket for an unsuccessfull login
 		  	 	socketio.on("bad_login", function(data){
-		  	 		alert("not a valid login");
-		  	 		return;
-		  	 	})
+		  	 		if(logged_in_user === undefined && account_type === undefined){
+		  	 			alert("not a valid login");
+		  	 			return;
+		  	 		}
+		  	 	});
 		  	 	//socket for an invalid username
 		  	 	socketio.on("no_user_found", function(data){
-		  	 		alert(data['username'] + " is not a valid username");
-		  	 		return;
-		  	 	})
-		  	}
-		  	//if the username entered is not possible
-		  	else
-		  	{
-		  		alert("Login failed. Invalid username");
-		  	}
+		  	 		if(logged_in_user === undefined && account_type === undefined){
+		  	 			alert(data['username'] + " is not a valid username");
+		  	 			return;
+		  	 		}
+		  	 	});
+		}
+		//if the username entered is not possible
+		else
+		{
+		  	alert("Login failed. Invalid username");
 		}
 	}
 

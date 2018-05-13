@@ -6,6 +6,8 @@ let http = require("http"),
 	passwordHash = require('password-hash');
 	bcrypt = require('bcrypt');
 
+let loggedInUsers = [];
+
 // Listen for HTTP connections.  This is essentially a miniature static file server that only serves our one file, client.html:
 let app = http.createServer(function(req, resp)
 {
@@ -101,6 +103,7 @@ socket.on('login_attempt', function(data){
     }
     //checks password
     if(bcrypt.compareSync(password, userObj.password)){
+    	loggedInUsers.push(username);
   		io.sockets.emit("successful_login", {username:username,account_type:userObj.account_type});
   	}
   	//if invalid password
