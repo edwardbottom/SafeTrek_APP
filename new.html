@@ -35,10 +35,10 @@
 		<input type="text" id="login_username" placeholder = "username" ><br><br>
 		Password: 
   		<input type="password" id="login_password" placeholder="password" ><br><br>
-  		<button id="login_button" type="button">Login </button><br>
+  		<button id="login_button" type="button" class="btn btn-secondary">Login </button><br>
   	<br>
   	<!--takes users to the register screen -->
-	<button id="go_to_register" type="button">Register </button>
+	<button id="go_to_register" type="button" class="btn btn-secondary">Register </button>
 	<br>
 	<br>
 	<br>
@@ -65,30 +65,29 @@
   		Account type: 
   		<input type="radio" name="account_type" value="parent" id="account_type_parent">Parent
   		<input type="radio" name="account_type" value="child" id="account_type_child">Child<br>  
-  		<button id="register_button" type="submit"> Register </button> <br>
+  		<button id="register_button" type="submit" class="btn btn-secondary"> Register </button> <br>
   		<br>
   	<!--returns user to the home screen -->
-  	<button id="cancel_register" type="button">Cancel </button>
+  	<button id="cancel_register" type="button" class="btn btn-secondary">Cancel </button>
   </div>
 </div>
 
 <!--home screen for the users -->
 <div id="home_screen">
 	<div class="card" style="width: 22rem;">
-		<br>
-		<h3></h3>
 	<!--mapping and tracking features exclusive to parents -->
 	<div id="parent_features">
 		<p id="child_name">Child Name: None </p>
     	<div id="outtermap"><div id="map" style="width: 275px; height: 275px"></div></div>
-    	<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
-		<button id="change_child" type="button">Change Child </button><br>
-		<button id="add_child" type="button">Add Child </button><br>
+    	<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script><br>
+		<button id="change_child" type="button" class="btn btn-secondary">Change Child </button><br><br>
+		<button id="add_child" type="button" class="btn btn-secondary">Add Child </button><br>
 	</div>
 	<!--emergency buttons and logout -->
-	<button id="panic_button" type="button">Panic </button><br>
-	<button id="medical_button" type="button">Medical </button><br>
-	<button id="logout_button" type="button">Logout </button>
+	<br>
+	<button id="panic_button" type="button" class="btn btn-danger">Panic </button><br>
+	<button id="medical_button" type="button" class="btn btn-danger">Medical </button><br>
+	<button id="logout_button" type="button" class="btn btn-secondary">Logout </button>
 </div>
 </div>
 
@@ -101,7 +100,7 @@
 		<h4> Select a Child</h4>
 		<ul id='children_list'> 
 		</ul>
-		<button id="cancel_change_child_button" type="button"> Cancel </button>
+		<button id="cancel_change_child_button" type="button" class="btn btn-secondary"> Cancel </button>
 	</div>
 </div>
 
@@ -113,8 +112,8 @@
 		<br>
 		Child Username:
 		<input type="text" id="new_child_username" placeholder = "child username"><br>
-		<button id="submit_child" type="button"> Submit Child </button><br>
-		<button id="cancel_submit_child_button" type="button"> Cancel </button>
+		<button id="submit_child" type="button" class="btn btn-secondary"> Submit Child </button><br>
+		<button id="cancel_submit_child_button" type="button" class="btn btn-secondary"> Cancel </button>
 	</div>
 </div>
 
@@ -125,8 +124,8 @@
 		<h3></h3>
 		<br>
 	<h3> Are you sure you want to call the police? </h3><br>
-	<button id="call_police" type="button"> Yes! </button><br>
-	<button id="cancel_police_call" type="button"> No! </button>
+	<button id="call_police" type="button" class="btn btn-danger"> Yes! </button><br>
+	<button id="cancel_police_call" type="button" class="btn btn-secondary"> No! </button>
 </div>
 </div>
 
@@ -137,8 +136,8 @@
 		<h3></h3>
 		<br>
 	<h3> Are you sure you want to call medical services? </h3>
-	<button id="call_medical" type="button"> Yes! </button><br>
-	<button id="cancel_medical_call" type="button"> No! </button>
+	<button id="call_medical" type="button" class="btn btn-danger"> Yes! </button><br>
+	<button id="cancel_medical_call" type="button" class="btn btn-secondary"> No! </button>
 </div>
 </div>
 
@@ -150,7 +149,7 @@
 		<br>
 	<p> Emergency services have been contacted!</p>
 	<!--button to leave the screen -->
-	<button id="return_to_home"> Return to Home </button>
+	<button id="return_to_home" class="btn btn-secondary"> Return to Home </button>
 	<div class="container-fluid">
 </div>
 
@@ -276,41 +275,45 @@ function sendLoginRequest(){
           let re = /^[\w_\-]+$/;
           if(re.test(username))
 		  {
-		  	 socketio.emit('login_attempt',{username:username, password_guess:password_guess});
-		  	 socketio.on("user_does_not_exist", function(data){
-		  	 	alert("username " + data['username'] + " is not a registered account ");
-		  	 	return;
-		  	 });
-		  	 //socket for a successful login
-		  	 socketio.on("successful_login", function(data){
-		  	 	login_screen.hidden = true;
-		  	 	account_type = data['account_type'];
-		  	 	if(account_type == 'child'){
-		  	 		locTimer = setInterval(tryGeolocation, 10000);
-		  	 		console.log("beacon interval set");
-		  	 	}
-		  	 	console.log("the account type was set to " + account_type);
-		  	 	logged_in_user = username;
-		  	 	console.log("the logged in user was set to " + logged_in_user);
-		  	 	loadHomeScreen();
-		  	 });
-		  	 //socket for an unsuccessfull login
-		  	 socketio.on("bad_login", function(data){
-		  	 	alert("not a valid login");
-		  	 	return;
-		  	 })
-		  	 //socket for an invalid username
-		  	 socketio.on("no_user_found", function(data){
-		  	 	alert(data['username'] + " is not a valid username");
-		  	 	return;
-		  	 })
-		  }
-		  //if the username entered is not possible
-		  else
-		  {
-		  	alert("Login failed. Invalid username");
-		  }
-}
+		  	if(logged_in_user == undefined){
+		  		socketio.emit('login_attempt',{username:username, password_guess:password_guess});
+		  	 	socketio.on("user_does_not_exist", function(data){
+		  	 		alert("username " + data['username'] + " is not a registered account ");
+		  	 		return;
+		  	 	});
+		  	 }
+		  	 if(logged_in_user == undefined){
+		  	 	//socket for a successful login
+		  	 	socketio.on("successful_login", function(data){
+		  	 		login_screen.hidden = true;
+		  	 		account_type = data['account_type'];
+		  	 		if(account_type == 'child'){
+		  	 			locTimer = setInterval(tryGeolocation, 10000);
+		  	 			console.log("beacon interval set");
+		  	 		}
+		  	 		console.log("the account type was set to " + account_type);
+		  	 		logged_in_user = username;
+		  	 		console.log("the logged in user was set to " + logged_in_user);
+		  	 		loadHomeScreen();
+		  	 	});
+		  	 	//socket for an unsuccessfull login
+		  	 	socketio.on("bad_login", function(data){
+		  	 		alert("not a valid login");
+		  	 		return;
+		  	 	})
+		  	 	//socket for an invalid username
+		  	 	socketio.on("no_user_found", function(data){
+		  	 		alert(data['username'] + " is not a valid username");
+		  	 		return;
+		  	 	})
+		  	}
+		  	//if the username entered is not possible
+		  	else
+		  	{
+		  		alert("Login failed. Invalid username");
+		  	}
+		}
+	}
 
 //function for registering users
 function sendRegisterRequest(){
